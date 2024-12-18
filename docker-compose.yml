@@ -1,14 +1,45 @@
 services:
   stats-server:
+    build: stat/server
+    container_name: ewm-stat
     ports:
       - "9090:9090"
+    depends_on:
+      - stats-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/statDB
+      - SPRING_DATASOURCE_USERNAME=dbuser
+      - SPRING_DATASOURCE_PASSWORD=12345
 
   stats-db:
     image: postgres:16.1
+    container_name: statDB
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=statDB
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=12345
+
 
   ewm-service:
+    build: service
+    container_name: ewn-service
     ports:
       - "8080:8080"
+    depends_on:
+      - ewm-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:6432/ewmDB
+      - SPRING_DATASOURCE_USERNAME=dbuser
+      - SPRING_DATASOURCE_PASSWORD=12345
 
   ewm-db:
     image: postgres:16.1
+    container_name: ewmDB
+    ports:
+      - "6432:6432"
+    environment:
+      - POSTGRES_DB=ewmDB
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=12345
