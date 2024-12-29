@@ -48,6 +48,7 @@ public class Event {
     private LocalDateTime publishedOn;
     @Column(name = "confirmed_requests")
     private Integer confirmedRequests=0;
+    private Long views=0L;
 
     @Override
     public boolean equals(Object o) {

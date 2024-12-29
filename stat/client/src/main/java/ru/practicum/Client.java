@@ -9,24 +9,41 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class Client {
-    private static final String API_PREFIX = "/hit";
     protected final RestTemplate rest;
 
     public Client(@Value("${stat-service.url}") String statServiceUrl, RestTemplateBuilder builder) {
         rest = builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory(statServiceUrl + API_PREFIX))
+                .uriTemplateHandler(new DefaultUriBuilderFactory(statServiceUrl))
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                 .build();
 
     }
 
-    protected ResponseEntity<Object> addStat(StatDtoIn statDtoIn) {
-        return post("", null, null, statDtoIn);
+    public void addStat(String app, String uri, String ip, LocalDateTime timestamp) {
+        StatDtoIn statDtoIn = new StatDtoIn(app, uri, ip, timestamp);
+        post("/hit", null, null, statDtoIn);
+    }
+
+
+    public ResponseEntity<Object>getStats(String start, String end,  String[] uris,  Boolean unique) {
+        Map<String, Object> parameters = Map.of(
+                "start", start,
+                "end", end,
+                "uris", uris,
+                "unique", unique
+        );
+        return get("/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
+    }
+
+    protected ResponseEntity<Object> get(String path, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.GET, path, null, parameters, null);
     }
 
     protected <T> ResponseEntity<Object> post(String path, Long userId, @Nullable Map<String, Object> parameters, T body) {
@@ -51,9 +68,7 @@ public class Client {
     private HttpHeaders defaultHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        List<MediaType> accept = new ArrayList<>();
-        accept.add(MediaType.APPLICATION_JSON);
-        headers.setAccept(accept);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         return headers;
     }
 

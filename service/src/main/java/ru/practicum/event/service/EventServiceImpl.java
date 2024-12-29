@@ -1,7 +1,14 @@
 package ru.practicum.event.service;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.practicum.Client;
+import ru.practicum.StatDtoOut;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.event.dto.*;
@@ -14,7 +21,9 @@ import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,14 +36,19 @@ public class EventServiceImpl implements EventService {
 
     private final CategoryRepository categoryRepository;
 
+    private final Client client;
 
-    public EventServiceImpl(EventRepository eventRepository, EventMapper eventMapper,
+
+    public EventServiceImpl(EventRepository eventRepository,
+                            EventMapper eventMapper,
                             UserRepository userRepository,
-                            CategoryRepository categoryRepository) {
+                            CategoryRepository categoryRepository,
+                            Client client) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.client = client;
     }
 
     @Override
@@ -162,6 +176,82 @@ public class EventServiceImpl implements EventService {
 
     }
 
+    @Override
+    public List<EventShortDto> getEvents(EventGetRequestDto eventGetRequestDto, HttpServletRequest request) {
+        QEvent event = QEvent.event;
+        List<BooleanExpression> conditions = new LinkedList<>();
+        conditions.add(event.paid.eq(eventGetRequestDto.getPaid()));
+        conditions.add(event.annotation.toLowerCase().like(eventGetRequestDto.getText())
+                .or(event.description.toLowerCase().like(eventGetRequestDto.getText())));
+        conditions.add(event.state.eq(State.PUBLISHED));
+        if (eventGetRequestDto.getOnlyAvailable()) {
+            conditions.add(event.participantLimit.goe(event.confirmedRequests));
+        }
+        if (eventGetRequestDto.getRangeStart() != null || eventGetRequestDto.getRangeEnd() != null) {
+            conditions.add(event.eventDate.between(eventGetRequestDto.getRangeStart(), eventGetRequestDto.getRangeEnd()));
+        } else {
+            conditions.add(event.eventDate.after(LocalDateTime.now()));
+        }
+        conditions.add(event.category.id.in(eventGetRequestDto.getCategories()));
+        Sort sort = getSort(eventGetRequestDto.getSort());
+        PageRequest pageRequest = PageRequest.of(eventGetRequestDto.getFrom(), eventGetRequestDto.getSize(), sort);
+        BooleanExpression finalCondition = conditions.stream()
+                .reduce(BooleanExpression::and).get();
+        Iterable<Event> all = eventRepository.findAll(finalCondition, pageRequest);
+        Iterator<Event> iterator = all.iterator();
+        List<Event> events = new LinkedList<>();
+        while (iterator.hasNext()) {
+            events.add(iterator.next());
+        }
+        String uri = saveStat(events, request);
+        getViews(events, uri);
+        return eventMapper.toShortDto(events);
+    }
+
+
+    private String saveStat(List<Event> events, HttpServletRequest request) {
+        List<String> ids = events.stream()
+                .map(Event::getId)
+                .map(id -> id.toString())
+                .toList();
+        String uri = ids.stream().reduce("", (current, next) -> current + "/" + next);
+        String finalUri = request.getRequestURI() + uri;
+        client.addStat("ewm-main-service", finalUri, request.getRemoteAddr(), LocalDateTime.now());
+        return finalUri;
+    }
+
+    private void getViews(List<Event> events, String finalUri) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // "events/2/233/44/1
+        Map<Long, Event> eventMap = events.stream()
+                .collect(Collectors.toMap(Event::getId, event -> event));
+        List<String> listUris = eventMap.keySet().stream()
+                .map(id -> "/events/" + id).toList();
+        String[] uris = listUris.toArray(new String[listUris.size() + 1]);
+        uris[uris.length - 1] = finalUri;
+        ResponseEntity<Object> response = client.getStats(LocalDateTime.MIN.format(formatter),
+                LocalDateTime.MAX.format(formatter), uris, true);
+        List<StatDtoOut> stat = (List<StatDtoOut>) response.getBody();
+        for (StatDtoOut statDto : stat) {
+            String uniUri = statDto.getUri();
+            String[] uniUris = uniUri.split("/");
+            for (int i = 1; i < uniUris.length; i++) {
+                Event event = eventMap.get(Long.getLong(uniUris[i]));
+                event.setViews(event.getViews() + statDto.getHits());
+            }
+        }
+        eventRepository.saveAll(eventMap.values());
+
+    }
+
+
+    private Sort getSort(EventGetRequestDto.Sort sort) {
+        if (sort.equals(EventGetRequestDto.Sort.EVENT_DATE)) {
+            return Sort.by("eventDate").descending();
+        } else {
+            return Sort.by("views").descending();
+        }
+    }
 
     private LocalDateTime getCurrentTime() {
         return LocalDateTime.now();

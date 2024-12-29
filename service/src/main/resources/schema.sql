@@ -25,7 +25,8 @@ created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 user_id INTEGER REFERENCES users(user_id),
 state VARCHAR(15),
 published_on TIMESTAMP WITHOUT TIME ZONE,
-confirmed_requests INTEGER
+confirmed_requests INTEGER,
+views INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS requests(
