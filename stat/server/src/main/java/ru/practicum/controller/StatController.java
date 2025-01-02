@@ -12,22 +12,20 @@ import ru.practicum.service.StatService;
 
 @RestController
 @Slf4j
-public class StatsController {
+public class StatController {
 
     private final StatService service;
 
     @Autowired
-    public StatsController(StatService service) {
+    public StatController(StatService service) {
         this.service = service;
     }
 
     @PostMapping("/hit")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     public void addStat(@Valid @RequestBody StatDtoIn statDto) {
         service.addStat(statDto);
         log.info("Добавлена новая запись {}", statDto);
-//        return ResponseEntity.status(201).body(
-//                "Информация сохранена");
     }
 
     @GetMapping("/stats")

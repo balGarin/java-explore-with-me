@@ -1,6 +1,5 @@
 package ru.practicum.event.dto;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.Data;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.user.dto.UserDto;

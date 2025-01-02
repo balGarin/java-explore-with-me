@@ -42,21 +42,20 @@ public class StatServiceImpl implements StatService {
         LocalDateTime startTime = LocalDateTime.parse(start, formatter);
         LocalDateTime endTime = LocalDateTime.parse(end, formatter);
         if (unique) {
-            if (uris != null) {
-                stats = repository.findAllByUriInAndTimestampBetweenAndDistinctByIp(startTime, endTime, uris);
-                log.info("Статистика с уникальными IP и  с выбранными Uri собрана : {}", start);
-            } else {
+            if (uris == null || uris.length == 0) {
                 stats = repository.findAllByTimestampBetweenAndDistinctByIp(startTime, endTime);
-                log.info("Статистика с уникальными IP собрана : {}", start);
+                log.info("Статистика с уникальными IP собрана : {}", stats);
+            } else {
+                stats = repository.findAllByUriInAndTimestampBetweenAndDistinctByIp(startTime, endTime, uris);
+                log.info("Статистика с уникальными IP и  с выбранными Uri собрана : {}", stats);
             }
         } else {
-            if (uris != null) {
-                stats = repository.findAllByTimestampBetweenAndUriIn(startTime, endTime, uris);
-                log.info("Статистика без уникальных IP и  с выбранными Uri собрана : {}", start);
-
-            } else {
+            if (uris == null || uris.length == 0) {
                 stats = repository.findAllByTimestampBetween(startTime, endTime);
-                log.info("Статистика без уникальных IP собрана : {}", start);
+                log.info("Статистика без уникальных IP собрана : {}", stats);
+            } else {
+                stats = repository.findAllByTimestampBetweenAndUriIn(startTime, endTime, uris);
+                log.info("Статистика без уникальных IP и  с выбранными Uri собрана : {}", stats);
             }
         }
         return stats;

@@ -13,7 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             WHERE u.user_id IN :ids
             GROUP BY u.user_id
             ORDER BY u.user_id ASC
-            LIMIT :size OFFSET :from""",nativeQuery = true)
+            LIMIT :size OFFSET :from""", nativeQuery = true)
     List<User> findAllInIds(Long[] ids, Integer from, Integer size);
 
     @Query(value = """
@@ -21,6 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             FROM users AS u
             GROUP BY u.user_id
             ORDER BY u.user_id ASC
-            LIMIT :size OFFSET :from""",nativeQuery = true)
+            LIMIT :size OFFSET :from""", nativeQuery = true)
     List<User> findAllWithoutIds(Integer from, Integer size);
 }

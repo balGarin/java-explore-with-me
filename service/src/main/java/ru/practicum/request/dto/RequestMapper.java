@@ -9,12 +9,13 @@ import java.util.List;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface RequestMapper {
-    @Mapping(target = "event",expression = "java(request.getEvent().getId())")
-    @Mapping(target = "requester",expression = "java(request.getRequester().getId())")
+    @Mapping(target = "event", expression = "java(request.getEvent().getId())")
+    @Mapping(target = "requester", expression = "java(request.getRequester().getId())")
+    @Mapping(target = "created", dateFormat = "yyyy-MM-dd HH:mm:ss")
     RequestDto toRequestDto(Request request);
 
-    List<RequestDto> toRequestDto(List<Request>requests);
+    List<RequestDto> toRequestDto(List<Request> requests);
 
 
-    RequestStatusUpdateDtoOut toRequestDto(List<Request>confirmedRequests,List<Request>rejectedRequests);
+    RequestStatusUpdateDtoOut toRequestDto(List<Request> confirmedRequests, List<Request> rejectedRequests);
 }

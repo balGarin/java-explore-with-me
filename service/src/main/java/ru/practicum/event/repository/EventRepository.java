@@ -7,7 +7,7 @@ import ru.practicum.event.model.Event;
 
 import java.util.List;
 
-public interface EventRepository extends JpaRepository<Event,Long>, QuerydslPredicateExecutor<Event> {
+public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
     @Query(value = """
             SELECT *
             FROM events ev
@@ -15,8 +15,8 @@ public interface EventRepository extends JpaRepository<Event,Long>, QuerydslPred
             GROUP BY ev.event_id
             ORDER BY ev.event_id ASC
             LIMIT :size OFFSET :from
-            """,nativeQuery = true)
-    List<Event>findAllEventsByCurrentUser(Long userId,Integer from,Integer size);
+            """, nativeQuery = true)
+    List<Event> findAllEventsByCurrentUser(Long userId, Integer from, Integer size);
 
-    Event findByInitiatorIdAndId(Long userId,Long eventId);
+    Event findByInitiatorIdAndId(Long userId, Long eventId);
 }

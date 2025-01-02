@@ -7,11 +7,11 @@ import lombok.Data;
 public class UserShortDto {
     @NotNull
     @NotBlank
-    @Size(min = 2,max = 250)
+    @Size(min = 2, max = 250)
     private String name;
     @NotNull
     @NotBlank
     @Email
-    @Size(min = 6,max = 254)
+    @Size(min = 6, max = 254)
     private String email;
 }

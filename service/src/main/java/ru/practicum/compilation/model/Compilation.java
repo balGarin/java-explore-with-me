@@ -1,32 +1,36 @@
-package ru.practicum.user.model;
+package ru.practicum.compilation.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.practicum.event.model.Event;
 
+import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "compilations")
 @ToString
-public class User {
-    @Column(name = "user_id")
+public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "compilation_id")
     private Long id;
-    private String email;
-    private String name;
+    private String title;
+    private Boolean pinned;
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Event> events;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        if (id == null || user.id == null) return false;
-        return id.equals(user.id);
+        Compilation that = (Compilation) o;
+        if (id == null || that.id == null) return false;
+        return id.equals(that.id);
     }
 
     @Override

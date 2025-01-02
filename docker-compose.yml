@@ -20,8 +20,6 @@ services:
       - POSTGRES_DB=statDB
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=12345
-
-
   ewm-service:
     build: service
     container_name: ewn-service
@@ -29,7 +27,9 @@ services:
       - "8080:8080"
     depends_on:
       - ewm-db
+      - stats-server
     environment:
+      - STATS_URL=http://stats-server:9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewmDB
       - SPRING_DATASOURCE_USERNAME=dbuser
       - SPRING_DATASOURCE_PASSWORD=12345
@@ -38,7 +38,7 @@ services:
     image: postgres:16.1
     container_name: ewmDB
     ports:
-      - "6432:5432"
+      - "6432:6432"
     environment:
       - POSTGRES_DB=ewmDB
       - POSTGRES_USER=dbuser

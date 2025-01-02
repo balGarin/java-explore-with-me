@@ -22,13 +22,15 @@ public interface EventMapper {
     @Mapping(target = "location", expression = "java(new Location(event.getLat(),event.getLon()))")
     @Mapping(target = "createdOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @Mapping(target = "publishedOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
     EventFullDto toFullDto(Event event);
 
 
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     EventShortDto toShortDto(Event event);
 
-    List<EventShortDto>toShortDto(List<Event>events);
-    List<EventFullDto>toFullDto(List<Event>events);
+    List<EventShortDto> toShortDto(List<Event> events);
+
+    List<EventFullDto> toFullDto(List<Event> events);
 
 }
