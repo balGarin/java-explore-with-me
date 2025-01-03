@@ -48,7 +48,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleIncorrectDateException(IncorrectDateException exception) {
+    public ErrorResponse handleIncorrectDateException(IncorrectDataException exception) {
         log.warn("Произошло исключение : {}", exception.getMessage());
         return new ErrorResponse(HttpStatus.BAD_REQUEST, "Incorrectly made request.",
                 exception.getMessage(), LocalDateTime.now().format(formatter));

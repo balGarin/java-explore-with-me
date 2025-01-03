@@ -13,7 +13,7 @@ import ru.practicum.compilation.model.QCompilation;
 import ru.practicum.compilation.repository.CompilationRepository;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.repository.EventRepository;
-import ru.practicum.exception.IncorrectDateException;
+import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.exception.NotFoundException;
 
 import java.util.ArrayList;
@@ -94,7 +94,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (compilationDtoIn.getPinned() != null) compilation.setPinned(compilationDtoIn.getPinned());
         if (compilationDtoIn.getTitle() != null) {
             if (compilationDtoIn.getTitle().length() > 50 || compilationDtoIn.getTitle().length() < 1) {
-                throw new IncorrectDateException("Title =" + compilationDtoIn.getTitle() + " is invalid");
+                throw new IncorrectDataException("Title =" + compilationDtoIn.getTitle() + " is invalid");
             }
             compilation.setTitle(compilationDtoIn.getTitle());
         }

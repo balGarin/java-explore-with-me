@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.StatDtoIn;
 import ru.practicum.StatDtoOut;
+import ru.practicum.exception.IncorrectDateException;
 import ru.practicum.model.StatMapper;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,9 @@ public class StatServiceImpl implements StatService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime startTime = LocalDateTime.parse(start, formatter);
         LocalDateTime endTime = LocalDateTime.parse(end, formatter);
+        if (endTime.isBefore(startTime)) {
+            throw new IncorrectDateException("Time end can not be before time start");
+        }
         if (unique) {
             if (uris == null || uris.length == 0) {
                 stats = repository.findAllByTimestampBetweenAndDistinctByIp(startTime, endTime);

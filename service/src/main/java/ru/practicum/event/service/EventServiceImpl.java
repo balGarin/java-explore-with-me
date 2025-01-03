@@ -15,7 +15,7 @@ import ru.practicum.category.repository.CategoryRepository;
 import ru.practicum.event.dto.*;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.IncorrectDateException;
+import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.user.model.User;
 import ru.practicum.user.repository.UserRepository;
@@ -93,7 +93,7 @@ public class EventServiceImpl implements EventService {
             if (eventUpdateUserDto.getDescription() != null) event.setDescription(eventUpdateUserDto.getDescription());
             if (eventUpdateUserDto.getEventDate() != null) {
                 if (eventUpdateUserDto.getEventDate().isBefore(getCurrentTime().plusHours(2))) {
-                    throw new IncorrectDateException("Invalid eventDate=" + eventUpdateUserDto.getEventDate());
+                    throw new IncorrectDataException("Invalid eventDate=" + eventUpdateUserDto.getEventDate());
                 }
                 event.setEventDate(eventUpdateUserDto.getEventDate());
             }
@@ -115,7 +115,7 @@ public class EventServiceImpl implements EventService {
                 } else if (eventUpdateUserDto.getStateAction().equals(StateActionUser.SEND_TO_REVIEW)) {
                     event.setState(State.PENDING);
                 } else {
-                    throw new IncorrectDateException("Invalid parameter stateAction=" + eventUpdateUserDto.getStateAction());
+                    throw new IncorrectDataException("Invalid parameter stateAction=" + eventUpdateUserDto.getStateAction());
                 }
             }
 
@@ -144,7 +144,7 @@ public class EventServiceImpl implements EventService {
         if (eventUpdateAdminDto.getDescription() != null) event.setDescription(eventUpdateAdminDto.getDescription());
         if (eventUpdateAdminDto.getEventDate() != null) {
             if (eventUpdateAdminDto.getEventDate().isBefore(getCurrentTime().plusHours(2))) {
-                throw new IncorrectDateException("Invalid eventDate=" + eventUpdateAdminDto.getEventDate());
+                throw new IncorrectDataException("Invalid eventDate=" + eventUpdateAdminDto.getEventDate());
             }
             event.setEventDate(eventUpdateAdminDto.getEventDate());
         }
@@ -168,7 +168,7 @@ public class EventServiceImpl implements EventService {
                 } else if (eventUpdateAdminDto.getStateAction().equals(StateActionAdmin.REJECT_EVENT)) {
                     event.setState(State.CANCELED);
                 } else {
-                    throw new IncorrectDateException("Param =" + eventUpdateAdminDto.getStateAction() + " is invalid");
+                    throw new IncorrectDataException("Param =" + eventUpdateAdminDto.getStateAction() + " is invalid");
                 }
             } else {
                 throw new ConflictException("Event=" + event.getId() + " is not in pending state");
@@ -201,7 +201,7 @@ public class EventServiceImpl implements EventService {
             LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
             LocalDateTime end = LocalDateTime.parse(rangeEnd, formatter);
             if (end.isBefore(start)) {
-                throw new IncorrectDateException("Time rangeStart and rangeEnd are invalid");
+                throw new IncorrectDataException("Time rangeStart and rangeEnd are invalid");
             }
             conditions.add(event.eventDate.between(start, end));
         } else {
@@ -273,13 +273,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void saveStat(List<Event> events, HttpServletRequest request) {
-        List<String> ids = events.stream()
-                .map(Event::getId)
-                .map(id -> id.toString())
-                .toList();
-        String uri = ids.stream().reduce("", (current, next) -> current + "/" + next);
-        String finalUri = request.getRequestURI() + uri;
-        client.addStat("ewm-main-service", finalUri, request.getRemoteAddr(), LocalDateTime.now());
+        client.addStat("ewm-main-service", request.getRequestURI(), request.getRemoteAddr(), LocalDateTime.now());
     }
 
     private void getViews(List<Event> events) {
@@ -320,7 +314,7 @@ public class EventServiceImpl implements EventService {
                 states[i] = state;
             }
         } catch (IllegalArgumentException e) {
-            throw new IncorrectDateException(e.getMessage());
+            throw new IncorrectDataException(e.getMessage());
         }
         return states;
     }

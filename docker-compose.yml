@@ -15,7 +15,7 @@ services:
     image: postgres:16.1
     container_name: statDB
     ports:
-      - "5432:5432"
+      - "6541:5432"
     environment:
       - POSTGRES_DB=statDB
       - POSTGRES_USER=dbuser
@@ -38,7 +38,7 @@ services:
     image: postgres:16.1
     container_name: ewmDB
     ports:
-      - "6432:6432"
+      - "6542:5432"
     environment:
       - POSTGRES_DB=ewmDB
       - POSTGRES_USER=dbuser

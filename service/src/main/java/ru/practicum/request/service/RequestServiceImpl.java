@@ -6,7 +6,7 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.model.State;
 import ru.practicum.event.repository.EventRepository;
 import ru.practicum.exception.ConflictException;
-import ru.practicum.exception.IncorrectDateException;
+import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.request.dto.RequestDto;
 import ru.practicum.request.dto.RequestMapper;
@@ -144,7 +144,7 @@ public class RequestServiceImpl implements RequestService {
                 }
             }
         } else {
-            throw new IncorrectDateException("Param =" + requestStatusUpdateDtoIn.getStatus() + " is invalid");
+            throw new IncorrectDataException("Param =" + requestStatusUpdateDtoIn.getStatus() + " is invalid");
         }
         log.info("Список подтвержденных запрос - {} Список отклоненных запросов - {}", confirmedRequests, rejectedRequests);
         eventRepository.save(event);

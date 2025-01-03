@@ -44,7 +44,7 @@ public class PublicController {
 
     @GetMapping("/events")
     public ResponseEntity<Object> getEvents(@RequestParam(name = "text", required = false) String text,
-                                            @RequestParam(name = "categories") Integer[] categories,
+                                            @RequestParam(name = "categories",required = false) Integer[] categories,
                                             @RequestParam(name = "paid", required = false) Boolean paid,
                                             @RequestParam(name = "rangeStart", required = false) String rangeStart,
                                             @RequestParam(name = "rangeEnd", required = false) String rangeEnd,
