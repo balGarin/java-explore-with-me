@@ -2,6 +2,7 @@ package ru.practicum.event.service;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,29 +27,13 @@ import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
-
-
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
-
     private final CategoryRepository categoryRepository;
-
     private final Client client;
-
-
-    public EventServiceImpl(EventRepository eventRepository,
-                            EventMapper eventMapper,
-                            UserRepository userRepository,
-                            CategoryRepository categoryRepository,
-                            Client client) {
-        this.eventRepository = eventRepository;
-        this.eventMapper = eventMapper;
-        this.userRepository = userRepository;
-        this.categoryRepository = categoryRepository;
-        this.client = client;
-    }
 
     @Override
     public EventFullDto addNewEvent(EventDtoIn eventDtoIn, Long userId) {
@@ -81,47 +66,45 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " wos not found"));
-
-        if (event.getState().equals(State.CANCELED) || event.getState().equals(State.PENDING)) {
-            if (eventUpdateUserDto.getAnnotation() != null) event.setAnnotation(eventUpdateUserDto.getAnnotation());
-            if (eventUpdateUserDto.getCategory() != null) {
-                Category category = categoryRepository.findById(eventUpdateUserDto.getCategory())
-                        .orElseThrow(() -> new NotFoundException(
-                                "Category with id=" + eventUpdateUserDto.getCategory() + " was not found"));
-                event.setCategory(category);
-            }
-            if (eventUpdateUserDto.getDescription() != null) event.setDescription(eventUpdateUserDto.getDescription());
-            if (eventUpdateUserDto.getEventDate() != null) {
-                if (eventUpdateUserDto.getEventDate().isBefore(getCurrentTime().plusHours(2))) {
-                    throw new IncorrectDataException("Invalid eventDate=" + eventUpdateUserDto.getEventDate());
-                }
-                event.setEventDate(eventUpdateUserDto.getEventDate());
-            }
-            if (eventUpdateUserDto.getLocation() != null) {
-                Location location = eventUpdateUserDto.getLocation();
-                event.setLat(location.getLat());
-                event.setLon(location.getLon());
-            }
-            if (eventUpdateUserDto.getPaid() != null) event.setPaid(eventUpdateUserDto.getPaid());
-            if (eventUpdateUserDto.getParticipantLimit() != null) event
-                    .setParticipantLimit(eventUpdateUserDto.getParticipantLimit());
-            if (eventUpdateUserDto.getRequestModeration() != null) event
-                    .setRequestModeration(eventUpdateUserDto.getRequestModeration());
-            if (eventUpdateUserDto.getTitle() != null) event.setTitle(eventUpdateUserDto.getTitle());
-
-            if (eventUpdateUserDto.getStateAction() != null) {
-                if (eventUpdateUserDto.getStateAction().equals(StateActionUser.CANCEL_REVIEW)) {
-                    event.setState(State.CANCELED);
-                } else if (eventUpdateUserDto.getStateAction().equals(StateActionUser.SEND_TO_REVIEW)) {
-                    event.setState(State.PENDING);
-                } else {
-                    throw new IncorrectDataException("Invalid parameter stateAction=" + eventUpdateUserDto.getStateAction());
-                }
-            }
-
-        } else {
+        if (event.getState().equals(State.PUBLISHED)) {
             throw new ConflictException("Only pending or canceled events can be changed");
         }
+        if (eventUpdateUserDto.getAnnotation() != null) event.setAnnotation(eventUpdateUserDto.getAnnotation());
+        if (eventUpdateUserDto.getCategory() != null) {
+            Category category = categoryRepository.findById(eventUpdateUserDto.getCategory())
+                    .orElseThrow(() -> new NotFoundException(
+                            "Category with id=" + eventUpdateUserDto.getCategory() + " was not found"));
+            event.setCategory(category);
+        }
+        if (eventUpdateUserDto.getDescription() != null) event.setDescription(eventUpdateUserDto.getDescription());
+        if (eventUpdateUserDto.getEventDate() != null) {
+            if (eventUpdateUserDto.getEventDate().isBefore(getCurrentTime().plusHours(2))) {
+                throw new IncorrectDataException("Invalid eventDate=" + eventUpdateUserDto.getEventDate());
+            }
+            event.setEventDate(eventUpdateUserDto.getEventDate());
+        }
+        if (eventUpdateUserDto.getLocation() != null) {
+            Location location = eventUpdateUserDto.getLocation();
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
+        }
+        if (eventUpdateUserDto.getPaid() != null) event.setPaid(eventUpdateUserDto.getPaid());
+        if (eventUpdateUserDto.getParticipantLimit() != null) event
+                .setParticipantLimit(eventUpdateUserDto.getParticipantLimit());
+        if (eventUpdateUserDto.getRequestModeration() != null) event
+                .setRequestModeration(eventUpdateUserDto.getRequestModeration());
+        if (eventUpdateUserDto.getTitle() != null) event.setTitle(eventUpdateUserDto.getTitle());
+
+        if (eventUpdateUserDto.getStateAction() != null) {
+            if (eventUpdateUserDto.getStateAction().equals(StateActionUser.CANCEL_REVIEW)) {
+                event.setState(State.CANCELED);
+            } else if (eventUpdateUserDto.getStateAction().equals(StateActionUser.SEND_TO_REVIEW)) {
+                event.setState(State.PENDING);
+            } else {
+                throw new IncorrectDataException("Invalid parameter stateAction=" + eventUpdateUserDto.getStateAction());
+            }
+        }
+
         Event eventUpdated = eventRepository.save(event);
         log.info("Событие с Id = {}, обновлен текущим пользователем на - {}", eventId, eventUpdated);
         return eventMapper.toFullDto(eventUpdated);
@@ -318,6 +301,4 @@ public class EventServiceImpl implements EventService {
         }
         return states;
     }
-
-
 }

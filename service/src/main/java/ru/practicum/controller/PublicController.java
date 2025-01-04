@@ -1,6 +1,7 @@
 package ru.practicum.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,20 +14,12 @@ import ru.practicum.event.service.EventService;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class PublicController {
 
     private final CategoryService categoryService;
     private final EventService eventService;
     private final CompilationService compilationService;
-
-
-    public PublicController(CategoryService categoryService,
-                            EventService eventService,
-                            CompilationService compilationService) {
-        this.categoryService = categoryService;
-        this.eventService = eventService;
-        this.compilationService = compilationService;
-    }
 
     @GetMapping("/categories")
     public ResponseEntity<Object> getAllCategories(@RequestParam(name = "from", defaultValue = "0") Integer from,
@@ -44,7 +37,7 @@ public class PublicController {
 
     @GetMapping("/events")
     public ResponseEntity<Object> getEvents(@RequestParam(name = "text", required = false) String text,
-                                            @RequestParam(name = "categories",required = false) Integer[] categories,
+                                            @RequestParam(name = "categories", required = false) Integer[] categories,
                                             @RequestParam(name = "paid", required = false) Boolean paid,
                                             @RequestParam(name = "rangeStart", required = false) String rangeStart,
                                             @RequestParam(name = "rangeEnd", required = false) String rangeEnd,

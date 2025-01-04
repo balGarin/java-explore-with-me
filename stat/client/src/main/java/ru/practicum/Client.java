@@ -21,7 +21,6 @@ public class Client {
                 .uriTemplateHandler(new DefaultUriBuilderFactory(statServiceUrl))
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                 .build();
-
     }
 
     public void addStat(String app, String uri, String ip, LocalDateTime timestamp) {

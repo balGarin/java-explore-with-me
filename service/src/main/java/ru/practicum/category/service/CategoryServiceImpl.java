@@ -1,6 +1,10 @@
 package ru.practicum.category.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.category.dto.CategoryDto;
 import ru.practicum.category.dto.CategoryMapper;
@@ -13,16 +17,11 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
-
-
-    public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
-        this.categoryRepository = categoryRepository;
-        this.categoryMapper = categoryMapper;
-    }
 
     @Override
     public CategoryDto addNewCategory(CategoryShortDto categoryShortDto) {
@@ -59,6 +58,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> getAllCategories(Integer from, Integer size) {
-        return categoryMapper.toCategoryDto(categoryRepository.findAllCategories(from, size));
+        Sort sort = Sort.by("id").ascending();
+        PageRequest pageRequest = PageRequest.of(from, size, sort);
+        Page<Category> all = categoryRepository.findAll(pageRequest);
+        List<Category> categories = all.stream().toList();
+        log.info("Найденные категории : {}", categories);
+        return categoryMapper.toCategoryDto(categories);
     }
 }

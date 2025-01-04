@@ -1,6 +1,7 @@
 package ru.practicum.compilation.service;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,19 +22,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CompilationServiceImpl implements CompilationService {
 
     private final EventRepository eventRepository;
     private final CompilationRepository compilationRepository;
     private final CompilationMapper compilationMapper;
-
-    public CompilationServiceImpl(EventRepository eventRepository,
-                                  CompilationRepository compilationRepository,
-                                  CompilationMapper compilationMapper) {
-        this.eventRepository = eventRepository;
-        this.compilationRepository = compilationRepository;
-        this.compilationMapper = compilationMapper;
-    }
 
     @Override
     public CompilationDtoOut addNewCompilation(CompilationDtoIn compilationDto) {
@@ -70,8 +64,6 @@ public class CompilationServiceImpl implements CompilationService {
             log.info("Получен список подборок : {}", compilations);
             return compilationMapper.toCompilationDto(compilations);
         }
-
-
     }
 
     @Override

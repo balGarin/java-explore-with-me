@@ -1,6 +1,7 @@
 package ru.practicum.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,16 +14,11 @@ import ru.practicum.request.service.RequestService;
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@RequiredArgsConstructor
 public class PrivateController {
 
     private final EventService eventService;
-
     private final RequestService requestService;
-
-    public PrivateController(EventService eventService, RequestService requestService) {
-        this.eventService = eventService;
-        this.requestService = requestService;
-    }
 
     @PostMapping("/{userId}/events")
     public ResponseEntity<Object> addNewEvent(@RequestBody @Valid EventDtoIn eventDtoIn,
@@ -49,7 +45,6 @@ public class PrivateController {
         return ResponseEntity.status(200).body(eventService.getFullInformationOfEventByCurrentUser(userId, eventId));
     }
 
-
     @PatchMapping("/{userId}/events/{eventId}")
     public ResponseEntity<Object> updateEventByCurrentUser(@RequestBody @Valid EventUpdateUserDto eventUpdateUserDto,
                                                            @PathVariable(name = "userId") Long userId,
@@ -58,7 +53,6 @@ public class PrivateController {
                 eventId, userId, eventUpdateUserDto);
         return ResponseEntity.status(200).body(eventService
                 .updateEventByCurrentUser(eventUpdateUserDto, userId, eventId));
-
     }
 
     @PostMapping("/{userId}/requests")
@@ -95,12 +89,9 @@ public class PrivateController {
                                                        @PathVariable(name = "userId") Long userId,
                                                        @PathVariable(name = "eventId") Long eventId) {
         log.info("""
-                        Получен запрос на изменение статуса от пользователя с Id= {},
-                         к событию с Id= {}, и RequestBody - {}""", userId, eventId, requestStatusUpdateDtoIn);
+                Получен запрос на изменение статуса от пользователя с Id= {},
+                 к событию с Id= {}, и RequestBody - {}""", userId, eventId, requestStatusUpdateDtoIn);
         return ResponseEntity.status(200)
                 .body(requestService.changeStatusRequests(requestStatusUpdateDtoIn, userId, eventId));
-
     }
-
-
 }

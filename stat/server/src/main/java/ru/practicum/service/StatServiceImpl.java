@@ -1,8 +1,8 @@
 package ru.practicum.service;
 
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.StatDtoIn;
 import ru.practicum.StatDtoOut;
 import ru.practicum.exception.IncorrectDateException;
@@ -17,18 +17,10 @@ import ru.practicum.repository.StatRepository;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StatServiceImpl implements StatService {
-
     private final StatRepository repository;
-
     private final StatMapper statMapper;
-
-
-    @Autowired
-    public StatServiceImpl(StatRepository repository, StatMapper statMapper) {
-        this.repository = repository;
-        this.statMapper = statMapper;
-    }
 
     @Override
     public void addStat(StatDtoIn statDto) {

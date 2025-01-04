@@ -1,5 +1,6 @@
 package ru.practicum.request.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.event.model.Event;
@@ -24,23 +25,12 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
-
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final RequestRepository requestRepository;
-
     private final RequestMapper requestMapper;
-
-    public RequestServiceImpl(UserRepository userRepository,
-                              EventRepository eventRepository,
-                              RequestRepository requestRepository,
-                              RequestMapper requestMapper) {
-        this.userRepository = userRepository;
-        this.eventRepository = eventRepository;
-        this.requestRepository = requestRepository;
-        this.requestMapper = requestMapper;
-    }
 
     @Override
     public RequestDto requestForParticipation(Long userId, Long eventId) {
@@ -67,8 +57,6 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("The limit of Event =" + event.getParticipantLimit() + " has been reached");
         }
         request.setCreated(LocalDateTime.now());
-
-
         if (!event.getRequestModeration() || event.getParticipantLimit().equals(0)) {
             request.setStatus(Status.CONFIRMED);
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
