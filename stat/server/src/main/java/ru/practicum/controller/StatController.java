@@ -1,8 +1,9 @@
 package ru.practicum.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,21 +12,15 @@ import ru.practicum.service.StatService;
 
 @RestController
 @Slf4j
-public class StatsController {
-
+@RequiredArgsConstructor
+public class StatController {
     private final StatService service;
 
-    @Autowired
-    public StatsController(StatService service) {
-        this.service = service;
-    }
-
     @PostMapping("/hit")
-    public ResponseEntity<Object> addStat(@Valid @RequestBody StatDtoIn statDto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addStat(@Valid @RequestBody StatDtoIn statDto) {
         service.addStat(statDto);
         log.info("Добавлена новая запись {}", statDto);
-        return ResponseEntity.status(201).body(
-                "Информация сохранена");
     }
 
     @GetMapping("/stats")
@@ -36,5 +31,4 @@ public class StatsController {
         log.info("Запрос на получение статистики : start:{} , end:{} , uris:{} , unique:{}", start, end, uris, unique);
         return ResponseEntity.status(200).body(service.getStat(start, end, uris, unique));
     }
-
 }
