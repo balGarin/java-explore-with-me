@@ -26,11 +26,11 @@ public interface EventMapper {
     @Mapping(target = "createdOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "publishedOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    EventFullDto toFullDto(Event event, List<Comment>comments);
+    EventFullDto toFullDto(Event event, List<Comment> comments);
 
 
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    EventShortDto toShortDto(Event event,List<Comment>comments);
+    EventShortDto toShortDto(Event event, List<Comment> comments);
 
     List<EventShortDto> toShortDto(List<Event> events);
 

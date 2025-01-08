@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 import ru.practicum.comment.model.Comment;
 import ru.practicum.comment.repository.CommentRepository;
-import ru.practicum.comment.service.CommentService;
 import ru.practicum.event.model.*;
 import ru.practicum.Client;
 import ru.practicum.StatDtoOut;
@@ -27,7 +26,6 @@ import ru.practicum.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j

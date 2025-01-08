@@ -103,6 +103,7 @@ public class PrivateController {
     @PostMapping("/{userId}/comments")
     public ResponseEntity<Object> addNewComment(@PathVariable(name = "userId") Long userId,
                                                 @RequestBody @Valid CommentDtoIn commentDtoIn) {
+        log.info("Получен запрос на добавление нового комментария - {}", commentDtoIn);
         return ResponseEntity.status(201).body(commentService.addNewComment(userId, commentDtoIn));
     }
 
@@ -110,12 +111,14 @@ public class PrivateController {
     public ResponseEntity<Object> editOwnComment(@PathVariable(name = "userId") Long userId,
                                                  @PathVariable(name = "commentId") Long commentId,
                                                  @RequestBody @Valid CommentUpdateDto commentUpdateDto) {
+        log.info("Получен запрос на обновление комментария с Id= {} на - {}", commentId, commentUpdateDto);
         return ResponseEntity.status(200).body(commentService.editOwnComment(userId, commentId, commentUpdateDto));
     }
 
     @DeleteMapping("/{userId}/comments/{commentId}")
     public ResponseEntity<Object> deleteOwnComment(@PathVariable(name = "userId") Long userId,
                                                    @PathVariable(name = "commentId") Long commentId) {
+        log.info("Получен запрос на удаление комментария с Id= {}", commentId);
         commentService.deleteOwnComment(userId, commentId);
         return ResponseEntity.status(204).body("Комментарий удален");
 
@@ -124,6 +127,7 @@ public class PrivateController {
     @GetMapping("/{userId}/comments/{commentId}")
     public ResponseEntity<Object> getCommentByIdOfCurrentUser(@PathVariable(name = "userId") Long userId,
                                                               @PathVariable(name = "commentId") Long commentId) {
+        log.info("Получен запрос на получение комментария с Id= {}", commentId);
         return ResponseEntity.status(200).body(commentService.getCommentByIdOfCurrentUser(userId, commentId));
     }
 
@@ -132,6 +136,7 @@ public class PrivateController {
             @PathVariable(name = "userId") Long userId,
             @RequestParam(name = "from", defaultValue = "0") Integer from,
             @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        log.info("Получен запрос на поиск комментариев с параметрами from= {},size= {}", from, size);
         return ResponseEntity.status(200).body(commentService.getAllCommentsByCurrentUser(userId, from, size));
     }
 }

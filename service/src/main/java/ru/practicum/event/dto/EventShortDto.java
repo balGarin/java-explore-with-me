@@ -18,5 +18,5 @@ public class EventShortDto {
     private Boolean paid;
     private String title;
     private Integer views;
-    private List<CommentShortDto>comments;
+    private List<CommentShortDto> comments;
 }

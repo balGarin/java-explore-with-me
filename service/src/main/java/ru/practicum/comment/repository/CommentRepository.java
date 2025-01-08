@@ -6,9 +6,9 @@ import ru.practicum.comment.model.Comment;
 
 import java.util.List;
 
-public interface CommentRepository extends JpaRepository<Comment,Long>, QuerydslPredicateExecutor<Comment> {
+public interface CommentRepository extends JpaRepository<Comment, Long>, QuerydslPredicateExecutor<Comment> {
 
-    List<Comment> findAllByEventIdIn(List<Long>ids);
+    List<Comment> findAllByEventIdIn(List<Long> ids);
 
-    List<Comment>findAllByEventId(Long id);
+    List<Comment> findAllByEventId(Long id);
 }

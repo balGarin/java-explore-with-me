@@ -28,14 +28,14 @@ public class Comment {
     @JoinColumn(name = "event_id")
     private Event event;
     private LocalDateTime created = LocalDateTime.now();
-    private Boolean anonymous ;
+    private Boolean anonymous;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Comment comment = (Comment) o;
-        if(id==null||comment.id==null)return false;
+        if (id == null || comment.id == null) return false;
         return id.equals(comment.id);
     }
 

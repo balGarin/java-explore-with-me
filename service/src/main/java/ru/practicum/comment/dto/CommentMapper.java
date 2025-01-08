@@ -33,11 +33,12 @@ public interface CommentMapper {
             return comment.getAuthor();
         }
     }
+
     @Named("getName")
-    default String getName(Comment comment){
-        if(comment.getAnonymous()){
+    default String getName(Comment comment) {
+        if (comment.getAnonymous()) {
             return "unknown";
-        }else {
+        } else {
             return comment.getAuthor().getName();
         }
     }
