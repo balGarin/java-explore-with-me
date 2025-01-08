@@ -11,7 +11,7 @@ public class CommentDtoIn {
     @NotBlank
     @Size(max = 2000)
     private String text;
-    private Boolean anonymous;
+    private Boolean anonymous = false;
     @NotNull
     private Long eventId;
 }

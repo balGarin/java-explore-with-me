@@ -4,13 +4,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import ru.practicum.category.dto.CategoryMapper;
+import ru.practicum.comment.dto.CommentMapper;
+import ru.practicum.comment.model.Comment;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.Location;
 import ru.practicum.user.dto.UserMapper;
 
 import java.util.List;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {CategoryMapper.class, UserMapper.class},
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {CategoryMapper.class, UserMapper.class, CommentMapper.class},
         imports = Location.class)
 public interface EventMapper {
     @Mapping(target = "lat", expression = "java(eventDtoIn.getLocation().getLat())")
@@ -23,11 +26,11 @@ public interface EventMapper {
     @Mapping(target = "createdOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "publishedOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    EventFullDto toFullDto(Event event);
+    EventFullDto toFullDto(Event event, List<Comment>comments);
 
 
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    EventShortDto toShortDto(Event event);
+    EventShortDto toShortDto(Event event,List<Comment>comments);
 
     List<EventShortDto> toShortDto(List<Event> events);
 

@@ -106,14 +106,14 @@ public class PrivateController {
         return ResponseEntity.status(201).body(commentService.addNewComment(userId, commentDtoIn));
     }
 
-    @PatchMapping("/{userId}/{commentId}/comments")
+    @PatchMapping("/{userId}/comments/{commentId}")
     public ResponseEntity<Object> editOwnComment(@PathVariable(name = "userId") Long userId,
                                                  @PathVariable(name = "commentId") Long commentId,
                                                  @RequestBody @Valid CommentUpdateDto commentUpdateDto) {
         return ResponseEntity.status(200).body(commentService.editOwnComment(userId, commentId, commentUpdateDto));
     }
 
-    @DeleteMapping("/{userId}/{commentId}/comments")
+    @DeleteMapping("/{userId}/comments/{commentId}")
     public ResponseEntity<Object> deleteOwnComment(@PathVariable(name = "userId") Long userId,
                                                    @PathVariable(name = "commentId") Long commentId) {
         commentService.deleteOwnComment(userId, commentId);
@@ -121,7 +121,7 @@ public class PrivateController {
 
     }
 
-    @GetMapping("/{userId}/{commentId}/comments")
+    @GetMapping("/{userId}/comments/{commentId}")
     public ResponseEntity<Object> getCommentByIdOfCurrentUser(@PathVariable(name = "userId") Long userId,
                                                               @PathVariable(name = "commentId") Long commentId) {
         return ResponseEntity.status(200).body(commentService.getCommentByIdOfCurrentUser(userId, commentId));

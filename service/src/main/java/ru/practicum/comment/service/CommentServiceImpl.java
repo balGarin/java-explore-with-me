@@ -36,9 +36,12 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(()-> new NotFoundException("User with id=" + userId + " wos not found"));
         Event event = eventRepository.findById(commentDtoIn.getEventId())
                 .orElseThrow(()->new NotFoundException("Event with id="+commentDtoIn.getEventId()+" wos not found"));
+        if(event.getBlockComments()){
+            throw new ConflictException("Event with id="+event.getId()+" has block for comments");
+        }
         Comment comment = new Comment();
         comment.setText(commentDtoIn.getText());
-        comment.setCommentator(user);
+        comment.setAuthor(user);
         comment.setEvent(event);
         comment.setAnonymous(commentDtoIn.getAnonymous());
         return commentMapper.toCommentDto(commentRepository.save(comment));
@@ -48,15 +51,14 @@ public class CommentServiceImpl implements CommentService {
     public CommentDtoOut editOwnComment(Long userId, Long commentId,  CommentUpdateDto commentUpdateDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(()-> new NotFoundException("User with id=" + userId + " wos not found"));
-        Event event = eventRepository.findById(commentUpdateDto.getEventId())
-                .orElseThrow(()->new NotFoundException("Event with id="+commentUpdateDto.getEventId()+" wos not found"));
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new NotFoundException("Comment with id="+commentId+" wos not found"));
-        if(!comment.getCommentator().getId().equals(userId)){
+        if(!comment.getAuthor().getId().equals(userId)){
             throw  new ConflictException("You are not a owner of this comment");
         }
         if(commentUpdateDto.getAnonymous()!=null)comment.setAnonymous(commentUpdateDto.getAnonymous());
         if(commentUpdateDto.getText()!=null)comment.setText(commentUpdateDto.getText());
+
         return commentMapper.toCommentDto(commentRepository.save(comment));
     }
 
@@ -66,7 +68,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(()-> new NotFoundException("User with id=" + userId + " wos not found"));
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new NotFoundException("Comment with id="+commentId+" wos not found"));
-        if(!comment.getCommentator().getId().equals(userId)){
+        if(!comment.getAuthor().getId().equals(userId)){
             throw  new ConflictException("You are not a owner of this comment");
         }
         commentRepository.delete(comment);
@@ -78,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(()-> new NotFoundException("User with id=" + userId + " wos not found"));
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()->new NotFoundException("Comment with id="+commentId+" wos not found"));
-        if(!user.getId().equals(comment.getCommentator().getId())){
+        if(!user.getId().equals(comment.getAuthor().getId())){
             throw new ConflictException("You are not a owner of this comment");
         }
         return commentMapper.toCommentDto(comment);
@@ -91,7 +93,7 @@ public class CommentServiceImpl implements CommentService {
         Sort sort = Sort.by("created").descending();
         PageRequest pageRequest = PageRequest.of(from,size,sort);
         QComment qComment = QComment.comment;
-        BooleanExpression condition = qComment.commentator.id.eq(userId);
+        BooleanExpression condition = qComment.author.id.eq(userId);
         Page<Comment> all = commentRepository.findAll(condition,pageRequest);
         List<Comment>comments = all.stream().toList();
         return commentMapper.toCommentDto(comments);

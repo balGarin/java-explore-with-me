@@ -11,7 +11,7 @@ import ru.practicum.user.dto.UserDto;
 public class CommentDtoOut {
  private long id;
  private String Text;
- private UserDto commentator;
+ private UserDto author;
  private EventShortDto event;
  private String created;
 }

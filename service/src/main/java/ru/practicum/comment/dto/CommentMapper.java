@@ -12,12 +12,17 @@ import java.util.List;
         uses = {UserMapper.class, EventMapper.class})
 public interface CommentMapper {
     @Mapping(target = "created", dateFormat = "yyyy-MM-dd HH:mm:ss")
-    @Mapping(target = "commentator", qualifiedByName = "getUser", source = "comment")
+    @Mapping(target = "author", qualifiedByName = "getUser", source = "comment")
     CommentDtoOut toCommentDto(Comment comment);
 
 
-    List<CommentDtoOut>toCommentDto(List<Comment>comments);
+    List<CommentDtoOut> toCommentDto(List<Comment> comments);
 
+    @Mapping(target = "author", qualifiedByName = "getName", source = "comment")
+    CommentShortDto toCommentShortDto(Comment comment);
+
+
+    List<CommentShortDto> toCommentShortDto(List<Comment> comments);
 
 
     @Named("getUser")
@@ -25,7 +30,15 @@ public interface CommentMapper {
         if (comment.getAnonymous()) {
             return new User(0L, "unknown", "unknown");
         } else {
-            return comment.getCommentator();
+            return comment.getAuthor();
+        }
+    }
+    @Named("getName")
+    default String getName(Comment comment){
+        if(comment.getAnonymous()){
+            return "unknown";
+        }else {
+            return comment.getAuthor().getName();
         }
     }
 

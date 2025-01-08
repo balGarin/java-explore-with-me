@@ -26,7 +26,8 @@ user_id INTEGER REFERENCES users(user_id),
 state VARCHAR(15),
 published_on TIMESTAMP WITHOUT TIME ZONE,
 confirmed_requests INTEGER,
-views INTEGER
+views INTEGER,
+block_comments BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS requests(

@@ -23,12 +23,12 @@ public class Comment {
     private String text;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User commentator;
+    private User author;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;
     private LocalDateTime created = LocalDateTime.now();
-    private Boolean anonymous = false;
+    private Boolean anonymous ;
 
     @Override
     public boolean equals(Object o) {
