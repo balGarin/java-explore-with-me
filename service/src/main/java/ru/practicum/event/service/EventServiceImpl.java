@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
+import ru.practicum.comment.model.Comment;
+import ru.practicum.comment.repository.CommentRepository;
 import ru.practicum.event.model.*;
 import ru.practicum.Client;
 import ru.practicum.StatDtoOut;
@@ -33,6 +35,7 @@ public class EventServiceImpl implements EventService {
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final CommentRepository commentRepository;
     private final Client client;
 
     @Override
@@ -48,17 +51,39 @@ public class EventServiceImpl implements EventService {
         event.setInitiator(user);
         event.setCategory(category);
         log.info("Добавлено новое событие - {}", event);
-        return eventMapper.toFullDto(eventRepository.save(event));
+        return eventMapper.toFullDto(eventRepository.save(event), new ArrayList<>());
     }
 
     @Override
     public List<EventShortDto> getEventsOfCurrentUser(Long userId, Integer from, Integer size) {
-        return eventMapper.toShortDto(eventRepository.findAllEventsByCurrentUser(userId, from, size));
+        List<Event> events = eventRepository.findAllEventsByCurrentUser(userId, from, size);
+        List<Long> ids = events.stream().map(Event::getId).toList();
+        List<Comment> comments = commentRepository.findAllByEventIdIn(ids);
+        List<EventShortDto> listEventDto = new ArrayList<>();
+        for (Event event : events) {
+            List<Comment> commentsByEvent = new ArrayList<>();
+            for (Comment comment : comments) {
+                if (comment.getEvent().getId().equals(event.getId())) {
+                    commentsByEvent.add(comment);
+                }
+            }
+            listEventDto.add(eventMapper.toShortDto(event, commentsByEvent));
+        }
+        return listEventDto;
     }
 
     @Override
     public EventFullDto getFullInformationOfEventByCurrentUser(Long userId, Long eventId) {
-        return eventMapper.toFullDto(eventRepository.findByInitiatorIdAndId(userId, eventId));
+        Event event = eventRepository.findByInitiatorIdAndId(userId, eventId);
+        if (event == null) {
+            throw new NotFoundException("Event with id=" + eventId + " wos not found");
+        }
+        if (event.getBlockComments()) {
+            return eventMapper.toFullDto(event, new ArrayList<>());
+        } else {
+            List<Comment> comments = commentRepository.findAllByEventId(event.getId());
+            return eventMapper.toFullDto(event, comments);
+        }
     }
 
     @Override
@@ -94,7 +119,6 @@ public class EventServiceImpl implements EventService {
         if (eventUpdateUserDto.getRequestModeration() != null) event
                 .setRequestModeration(eventUpdateUserDto.getRequestModeration());
         if (eventUpdateUserDto.getTitle() != null) event.setTitle(eventUpdateUserDto.getTitle());
-
         if (eventUpdateUserDto.getStateAction() != null) {
             if (eventUpdateUserDto.getStateAction().equals(StateActionUser.CANCEL_REVIEW)) {
                 event.setState(State.CANCELED);
@@ -104,10 +128,17 @@ public class EventServiceImpl implements EventService {
                 throw new IncorrectDataException("Invalid parameter stateAction=" + eventUpdateUserDto.getStateAction());
             }
         }
-
+        if (eventUpdateUserDto.getBlockComments() != null) {
+            event.setBlockComments(eventUpdateUserDto.getBlockComments());
+        }
         Event eventUpdated = eventRepository.save(event);
         log.info("Событие с Id = {}, обновлен текущим пользователем на - {}", eventId, eventUpdated);
-        return eventMapper.toFullDto(eventUpdated);
+        if (eventUpdated.getBlockComments()) {
+            return eventMapper.toFullDto(eventUpdated, new ArrayList<>());
+        } else {
+            List<Comment> comments = commentRepository.findAllByEventId(eventUpdated.getId());
+            return eventMapper.toFullDto(eventUpdated, comments);
+        }
     }
 
     @Override
@@ -142,7 +173,9 @@ public class EventServiceImpl implements EventService {
         if (eventUpdateAdminDto.getRequestModeration() != null) event
                 .setRequestModeration(eventUpdateAdminDto.getRequestModeration());
         if (eventUpdateAdminDto.getTitle() != null) event.setTitle(eventUpdateAdminDto.getTitle());
-
+        if (eventUpdateAdminDto.getBlockComments() != null) {
+            event.setBlockComments(eventUpdateAdminDto.getBlockComments());
+        }
         if (eventUpdateAdminDto.getStateAction() != null) {
             if (event.getState().equals(State.PENDING)) {
                 if (eventUpdateAdminDto.getStateAction().equals(StateActionAdmin.PUBLISH_EVENT)) {
@@ -158,8 +191,13 @@ public class EventServiceImpl implements EventService {
             }
         }
         log.info("Событие с Id = {}, обновлен Администратором на - {}", eventId, event);
-        return eventMapper.toFullDto(eventRepository.save(event));
-
+        Event eventUpdated = eventRepository.save(event);
+        if (eventUpdated.getBlockComments()) {
+            return eventMapper.toFullDto(eventUpdated, new ArrayList<>());
+        } else {
+            List<Comment> comments = commentRepository.findAllByEventId(eventUpdated.getId());
+            return eventMapper.toFullDto(eventUpdated, comments);
+        }
     }
 
     @Override
@@ -167,18 +205,18 @@ public class EventServiceImpl implements EventService {
                                          String rangeEnd, Boolean onlyAvailable, String sort, Integer from, Integer size,
                                          HttpServletRequest request) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        QEvent event = QEvent.event;
+        QEvent qEvent = QEvent.event;
         List<BooleanExpression> conditions = new LinkedList<>();
         if (paid != null) {
-            conditions.add(event.paid.eq(paid));
+            conditions.add(qEvent.paid.eq(paid));
         }
         if (text != null) {
-            conditions.add(event.annotation.toLowerCase().like(text.toLowerCase())
-                    .or(event.description.toLowerCase().like(text.toLowerCase())));
+            conditions.add(qEvent.annotation.toLowerCase().like(text.toLowerCase())
+                    .or(qEvent.description.toLowerCase().like(text.toLowerCase())));
         }
-        conditions.add(event.state.eq(State.PUBLISHED));
+        conditions.add(qEvent.state.eq(State.PUBLISHED));
         if (onlyAvailable != null && onlyAvailable) {
-            conditions.add(event.participantLimit.goe(event.confirmedRequests));
+            conditions.add(qEvent.participantLimit.goe(qEvent.confirmedRequests));
         }
         if (rangeStart != null && rangeEnd != null) {
             LocalDateTime start = LocalDateTime.parse(rangeStart, formatter);
@@ -186,12 +224,12 @@ public class EventServiceImpl implements EventService {
             if (end.isBefore(start)) {
                 throw new IncorrectDataException("Time rangeStart and rangeEnd are invalid");
             }
-            conditions.add(event.eventDate.between(start, end));
+            conditions.add(qEvent.eventDate.between(start, end));
         } else {
-            conditions.add(event.eventDate.after(LocalDateTime.now()));
+            conditions.add(qEvent.eventDate.after(LocalDateTime.now()));
         }
         if (categories != null) {
-            conditions.add(event.category.id.in(categories));
+            conditions.add(qEvent.category.id.in(categories));
         }
         PageRequest pageRequest;
         if (sort == null) {
@@ -208,7 +246,23 @@ public class EventServiceImpl implements EventService {
         saveStat(events, request);
         getViews(events);
         log.info("Список событий : {}", events);
-        return eventMapper.toShortDto(events);
+        List<Long> ids = events.stream().map(Event::getId).toList();
+        List<Comment> comments = commentRepository.findAllByEventIdIn(ids);
+        List<EventShortDto> listEventDto = new ArrayList<>();
+        for (Event event : events) {
+            List<Comment> commentsByEvent = new ArrayList<>();
+            for (Comment comment : comments) {
+                if (comment.getEvent().getId().equals(event.getId())) {
+                    commentsByEvent.add(comment);
+                }
+            }
+            if (event.getBlockComments()) {
+                listEventDto.add(eventMapper.toShortDto(event, new ArrayList<>()));
+            } else {
+                listEventDto.add(eventMapper.toShortDto(event, commentsByEvent));
+            }
+        }
+        return listEventDto;
     }
 
     @Override
@@ -221,30 +275,35 @@ public class EventServiceImpl implements EventService {
         saveStat(List.of(event), request);
         getViews(List.of(event));
         log.info("Найдено событие - {}", event);
-        return eventMapper.toFullDto(event);
+        if (event.getBlockComments()) {
+            return eventMapper.toFullDto(event, new ArrayList<>());
+        } else {
+            List<Comment> comments = commentRepository.findAllByEventId(event.getId());
+            return eventMapper.toFullDto(event, comments);
+        }
     }
 
     @Override
     public List<EventFullDto> getEventsByAdmin(Long[] users, String[] states, Long[] categories, String rangeStart,
                                                String rangeEnd, Integer from, Integer size) {
-        QEvent event = QEvent.event;
+        QEvent qEvent = QEvent.event;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         List<BooleanExpression> conditions = new LinkedList<>();
         if (users != null) {
-            conditions.add(event.initiator.id.in(users));
+            conditions.add(qEvent.initiator.id.in(users));
         }
         if (states != null) {
             State[] statesEnum = getStates(states);
-            conditions.add(event.state.in(statesEnum));
+            conditions.add(qEvent.state.in(statesEnum));
         }
         if (categories != null) {
-            conditions.add(event.category.id.in(categories));
+            conditions.add(qEvent.category.id.in(categories));
         }
         if (rangeStart != null && rangeEnd != null) {
-            conditions.add(event.eventDate.between(LocalDateTime.parse(rangeStart, formatter),
+            conditions.add(qEvent.eventDate.between(LocalDateTime.parse(rangeStart, formatter),
                     LocalDateTime.parse(rangeEnd, formatter)));
         } else {
-            conditions.add(event.eventDate.after(LocalDateTime.now()));
+            conditions.add(qEvent.eventDate.after(LocalDateTime.now()));
         }
         PageRequest page = PageRequest.of(from, size);
         BooleanExpression finalCondition = conditions.stream()
@@ -252,7 +311,24 @@ public class EventServiceImpl implements EventService {
         Page<Event> all = eventRepository.findAll(finalCondition, page);
         List<Event> events = all.stream().toList();
         log.info("Список событий : {}", events);
-        return eventMapper.toFullDto(events);
+
+        List<Long> ids = events.stream().map(Event::getId).toList();
+        List<Comment> comments = commentRepository.findAllByEventIdIn(ids);
+        List<EventFullDto> listEventDto = new ArrayList<>();
+        for (Event event : events) {
+            List<Comment> commentsByEvent = new ArrayList<>();
+            for (Comment comment : comments) {
+                if (comment.getEvent().getId().equals(event.getId())) {
+                    commentsByEvent.add(comment);
+                }
+            }
+            if (event.getBlockComments()) {
+                listEventDto.add(eventMapper.toFullDto(event, new ArrayList<>()));
+            } else {
+                listEventDto.add(eventMapper.toFullDto(event, commentsByEvent));
+            }
+        }
+        return listEventDto;
     }
 
     private void saveStat(List<Event> events, HttpServletRequest request) {

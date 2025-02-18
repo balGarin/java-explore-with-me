@@ -47,6 +47,8 @@ public class Event {
     @Column(name = "confirmed_requests")
     private Integer confirmedRequests = 0;
     private Long views = 0L;
+    @Column(name = "block_comments")
+    private Boolean blockComments;
 
     @Override
     public boolean equals(Object o) {

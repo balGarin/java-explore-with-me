@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.comment.dto.CommentDtoIn;
+import ru.practicum.comment.dto.CommentUpdateDto;
+import ru.practicum.comment.service.CommentService;
 import ru.practicum.event.dto.EventDtoIn;
 import ru.practicum.event.dto.EventUpdateUserDto;
 import ru.practicum.event.service.EventService;
@@ -19,6 +22,8 @@ public class PrivateController {
 
     private final EventService eventService;
     private final RequestService requestService;
+
+    private final CommentService commentService;
 
     @PostMapping("/{userId}/events")
     public ResponseEntity<Object> addNewEvent(@RequestBody @Valid EventDtoIn eventDtoIn,
@@ -93,5 +98,45 @@ public class PrivateController {
                  к событию с Id= {}, и RequestBody - {}""", userId, eventId, requestStatusUpdateDtoIn);
         return ResponseEntity.status(200)
                 .body(requestService.changeStatusRequests(requestStatusUpdateDtoIn, userId, eventId));
+    }
+
+    @PostMapping("/{userId}/comments")
+    public ResponseEntity<Object> addNewComment(@PathVariable(name = "userId") Long userId,
+                                                @RequestBody @Valid CommentDtoIn commentDtoIn) {
+        log.info("Получен запрос на добавление нового комментария - {}", commentDtoIn);
+        return ResponseEntity.status(201).body(commentService.addNewComment(userId, commentDtoIn));
+    }
+
+    @PatchMapping("/{userId}/comments/{commentId}")
+    public ResponseEntity<Object> editOwnComment(@PathVariable(name = "userId") Long userId,
+                                                 @PathVariable(name = "commentId") Long commentId,
+                                                 @RequestBody @Valid CommentUpdateDto commentUpdateDto) {
+        log.info("Получен запрос на обновление комментария с Id= {} на - {}", commentId, commentUpdateDto);
+        return ResponseEntity.status(200).body(commentService.editOwnComment(userId, commentId, commentUpdateDto));
+    }
+
+    @DeleteMapping("/{userId}/comments/{commentId}")
+    public ResponseEntity<Object> deleteOwnComment(@PathVariable(name = "userId") Long userId,
+                                                   @PathVariable(name = "commentId") Long commentId) {
+        log.info("Получен запрос на удаление комментария с Id= {}", commentId);
+        commentService.deleteOwnComment(userId, commentId);
+        return ResponseEntity.status(204).body("Комментарий удален");
+
+    }
+
+    @GetMapping("/{userId}/comments/{commentId}")
+    public ResponseEntity<Object> getCommentByIdOfCurrentUser(@PathVariable(name = "userId") Long userId,
+                                                              @PathVariable(name = "commentId") Long commentId) {
+        log.info("Получен запрос на получение комментария с Id= {}", commentId);
+        return ResponseEntity.status(200).body(commentService.getCommentByIdOfCurrentUser(userId, commentId));
+    }
+
+    @GetMapping("/{userId}/comments")
+    public ResponseEntity<Object> getAllCommentsByCurrentUser(
+            @PathVariable(name = "userId") Long userId,
+            @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        log.info("Получен запрос на поиск комментариев с параметрами from= {},size= {}", from, size);
+        return ResponseEntity.status(200).body(commentService.getAllCommentsByCurrentUser(userId, from, size));
     }
 }
