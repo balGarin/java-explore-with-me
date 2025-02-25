@@ -13,6 +13,6 @@
 Основной сервис поделен на 3 API публичную, приватную и административную
 ---
 ## Стек:
-Java, Spring, Spring Boot, Spring MVC, Spring Data, Hibernate, Maven, Mapstruct,
-PostgreSQL
+**Java, Spring, Spring Boot, Spring MVC, Spring Data, Hibernate, Maven, Mapstruct,
+PostgreSQL**
 
